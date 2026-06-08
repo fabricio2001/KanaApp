@@ -16,9 +16,33 @@
           <h1 id="app-title">Kana Trainer</h1>
         </div>
 
-        <div class="mode-switch" aria-label="Escolha o tipo de kana">
-          <button class="mode-button active" type="button" data-mode="hiragana">Hiragana</button>
-          <button class="mode-button" type="button" data-mode="katakana">Katakana</button>
+        <div class="top-actions">
+          <button class="theme-switch" id="themeSwitch" type="button" aria-label="Alternar tema claro ou escuro" aria-pressed="false">
+            <span class="theme-icon sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="m4.93 4.93 1.41 1.41" />
+                <path d="m17.66 17.66 1.41 1.41" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="m6.34 17.66-1.41 1.41" />
+                <path d="m19.07 4.93-1.41 1.41" />
+              </svg>
+            </span>
+            <span class="theme-thumb" aria-hidden="true"></span>
+            <span class="theme-icon moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M20 14.5A7.5 7.5 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+              </svg>
+            </span>
+          </button>
+
+          <div class="mode-switch" aria-label="Escolha o tipo de kana">
+            <button class="mode-button active" type="button" data-mode="hiragana">Hiragana</button>
+            <button class="mode-button" type="button" data-mode="katakana">Katakana</button>
+          </div>
         </div>
       </header>
 

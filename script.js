@@ -107,8 +107,10 @@ const state = {
   mistakes: new Map(),
 };
 
+const savedTheme = localStorage.getItem("kana-theme");
 const modeButtons = document.querySelectorAll(".mode-button");
 const resetButtons = document.querySelectorAll(".reset-button");
+const themeSwitch = document.querySelector("#themeSwitch");
 const currentKana = document.querySelector("#currentKana");
 const kanaTrack = document.querySelector("#kanaTrack");
 const answerForm = document.querySelector("#answerForm");
@@ -122,6 +124,12 @@ const feedback = document.querySelector("#feedback");
 const mistakeList = document.querySelector("#mistakeList");
 const emptyHistory = document.querySelector("#emptyHistory");
 const clearHistory = document.querySelector("#clearHistory");
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  themeSwitch.setAttribute("aria-pressed", String(theme === "dark"));
+  localStorage.setItem("kana-theme", theme);
+}
 
 function shuffle(items) {
   return [...items]
@@ -309,10 +317,17 @@ resetButtons.forEach((button) => {
   });
 });
 
+themeSwitch.addEventListener("click", () => {
+  const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  applyTheme(currentTheme === "dark" ? "light" : "dark");
+  answerInput.focus();
+});
+
 clearHistory.addEventListener("click", () => {
   state.mistakes.clear();
   renderMistakes();
   answerInput.focus();
 });
 
+applyTheme(savedTheme === "dark" ? "dark" : "light");
 startLevel();
