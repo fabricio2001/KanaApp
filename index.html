@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kana Trainer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="game-panel" aria-labelledby="app-title">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Treino de Japonês</p>
+          <h1 id="app-title">Kana Trainer</h1>
+        </div>
+
+        <div class="mode-switch" aria-label="Escolha o tipo de kana">
+          <button class="mode-button active" type="button" data-mode="hiragana">Hiragana</button>
+          <button class="mode-button" type="button" data-mode="katakana">Katakana</button>
+        </div>
+      </header>
+
+      <section class="stats-grid" aria-label="Pontuação">
+        <div class="stat">
+          <span>Nível</span>
+          <strong id="levelLabel">1</strong>
+        </div>
+        <div class="stat">
+          <span>Win streak</span>
+          <strong id="streakLabel">0</strong>
+        </div>
+        <div class="stat">
+          <span>Progresso</span>
+          <strong id="progressLabel">0/5</strong>
+        </div>
+      </section>
+
+      <section class="reset-options" aria-label="Tipo de reset ao errar">
+        <div>
+          <span class="option-label">Ao errar</span>
+          <strong id="resetModeLabel">Resetar nível</strong>
+        </div>
+
+        <div class="reset-switch">
+          <button class="reset-button active" type="button" data-reset-mode="level">Só nível</button>
+          <button class="reset-button" type="button" data-reset-mode="total">Total</button>
+        </div>
+      </section>
+
+      <section class="play-area" aria-live="polite">
+        <div class="level-meta">
+          <span id="lineLabel">Linha: vogais</span>
+          <span id="answerHint">Digite em romaji</span>
+        </div>
+
+        <div class="kana-track" id="kanaTrack"></div>
+
+        <form class="answer-form" id="answerForm" autocomplete="off">
+          <input
+            id="answerInput"
+            name="answer"
+            type="text"
+            inputmode="latin"
+            placeholder="ex: a, ka, shi..."
+            aria-label="Resposta em romaji"
+            autofocus
+          >
+          <button type="submit">Responder</button>
+        </form>
+
+        <p class="feedback" id="feedback">Escolha o modo e comece pelo kana destacado.</p>
+      </section>
+    </section>
+
+    <aside class="history-panel" aria-labelledby="history-title">
+      <div class="history-header">
+        <div>
+          <p class="eyebrow">Revisão</p>
+          <h2 id="history-title">Kana errados</h2>
+        </div>
+        <button class="ghost-button" id="clearHistory" type="button">Limpar</button>
+      </div>
+
+      <ul class="mistake-list" id="mistakeList"></ul>
+      <p class="empty-history" id="emptyHistory">Nenhum erro ainda.</p>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
