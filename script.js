@@ -104,6 +104,7 @@ const state = {
   currentIndex: 0,
   streak: 0,
   resetMode: "level",
+  isWaitingAfterError: false,
   mistakes: new Map(),
 };
 
@@ -115,6 +116,7 @@ const currentKana = document.querySelector("#currentKana");
 const kanaTrack = document.querySelector("#kanaTrack");
 const answerForm = document.querySelector("#answerForm");
 const answerInput = document.querySelector("#answerInput");
+const answerButton = answerForm.querySelector("button");
 const levelLabel = document.querySelector("#levelLabel");
 const streakLabel = document.querySelector("#streakLabel");
 const progressLabel = document.querySelector("#progressLabel");
@@ -145,7 +147,10 @@ function getLevelEntries() {
 function startLevel(message = "") {
   state.queue = shuffle(getLevelEntries());
   state.currentIndex = 0;
+  state.isWaitingAfterError = false;
   answerInput.value = "";
+  answerInput.disabled = false;
+  answerButton.disabled = false;
   setFeedback(message || "Digite a leitura do kana destacado.", "");
   render();
 }
@@ -167,6 +172,7 @@ function render() {
   resetModeLabel.textContent = state.resetMode === "total" ? "Resetar tudo" : "Resetar nível";
   currentKana.textContent = current[state.mode];
   currentKana.setAttribute("aria-label", `Kana atual ${current[state.mode]}`);
+  currentKana.classList.toggle("error", state.isWaitingAfterError);
 
   kanaTrack.innerHTML = "";
 
@@ -182,6 +188,10 @@ function render() {
 
     if (entry === current) {
       card.classList.add("active");
+    }
+
+    if (entry === current && state.isWaitingAfterError) {
+      card.classList.add("error");
     }
 
     kanaTrack.append(card);
@@ -246,6 +256,21 @@ function resetAfterMistake(entry) {
   startLevel(`Errou. Era "${entry.romaji}". Reiniciando este nível.`);
 }
 
+function showMistakeBeforeReset(entry) {
+  state.isWaitingAfterError = true;
+  state.streak = 0;
+  answerInput.disabled = true;
+  answerButton.disabled = true;
+  answerInput.value = "";
+  setFeedback(`Errou. Era "${entry.romaji}".`, "error");
+  render();
+
+  window.setTimeout(() => {
+    resetAfterMistake(entry);
+    answerInput.focus();
+  }, 1000);
+}
+
 function handleCorrectAnswer() {
   state.currentIndex += 1;
 
@@ -271,6 +296,10 @@ function handleCorrectAnswer() {
 answerForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
+  if (state.isWaitingAfterError) {
+    return;
+  }
+
   const current = state.queue[state.currentIndex];
   const typedAnswer = normalizeAnswer(answerInput.value);
 
@@ -286,7 +315,7 @@ answerForm.addEventListener("submit", (event) => {
   }
 
   registerMistake(current, typedAnswer);
-  resetAfterMistake(current);
+  showMistakeBeforeReset(current);
 });
 
 modeButtons.forEach((button) => {

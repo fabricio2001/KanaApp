@@ -335,6 +335,15 @@ h2 {
   font-weight: 850;
   line-height: 1;
   box-shadow: 0 20px 42px rgba(37, 99, 235, 0.24);
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.current-kana.error {
+  border-color: var(--danger);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), transparent 42%),
+    var(--danger);
+  box-shadow: 0 20px 42px rgba(210, 61, 61, 0.28);
 }
 
 .kana-track {
@@ -374,6 +383,13 @@ h2 {
   background: var(--panel);
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+}
+
+.kana-card.error {
+  color: #ffffff;
+  border-color: var(--danger);
+  background: var(--danger);
+  box-shadow: 0 8px 18px rgba(210, 61, 61, 0.22);
 }
 
 .kana-card.done {
@@ -421,6 +437,12 @@ h2 {
 
 .answer-form button:hover {
   background: var(--primary-dark);
+}
+
+.answer-form input:disabled,
+.answer-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 .feedback {
