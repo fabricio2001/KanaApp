@@ -54,7 +54,10 @@
           <span id="answerHint">Digite em romaji</span>
         </div>
 
-        <div class="kana-track" id="kanaTrack"></div>
+        <div class="kana-stage">
+          <div class="current-kana" id="currentKana" aria-label="Kana atual"></div>
+          <div class="kana-track" id="kanaTrack" aria-label="Kana do nível"></div>
+        </div>
 
         <form class="answer-form" id="answerForm" autocomplete="off">
           <input

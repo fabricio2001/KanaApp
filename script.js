@@ -109,6 +109,7 @@ const state = {
 
 const modeButtons = document.querySelectorAll(".mode-button");
 const resetButtons = document.querySelectorAll(".reset-button");
+const currentKana = document.querySelector("#currentKana");
 const kanaTrack = document.querySelector("#kanaTrack");
 const answerForm = document.querySelector("#answerForm");
 const answerInput = document.querySelector("#answerInput");
@@ -156,6 +157,8 @@ function render() {
   progressLabel.textContent = `${answered}/${total}`;
   lineLabel.textContent = `Linhas: ${kanaRows.slice(0, state.level + 1).map((row) => row.name).join(", ")}`;
   resetModeLabel.textContent = state.resetMode === "total" ? "Resetar tudo" : "Resetar nível";
+  currentKana.textContent = current[state.mode];
+  currentKana.setAttribute("aria-label", `Kana atual ${current[state.mode]}`);
 
   kanaTrack.innerHTML = "";
 
@@ -175,6 +178,9 @@ function render() {
 
     kanaTrack.append(card);
   });
+
+  const activeCard = kanaTrack.querySelector(".kana-card.active");
+  activeCard?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
 
   renderMistakes();
 }
