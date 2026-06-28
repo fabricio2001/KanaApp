@@ -98,7 +98,10 @@ const kanaRows = [
 ];
 
 const state = {
-  mode: "hiragana",
+  scriptMode: "hiragana",
+  trainingMode: "levels",
+  levelScope: "cumulative",
+  selectedRows: new Set(["na"]),
   level: 0,
   queue: [],
   currentIndex: 0,
@@ -109,7 +112,9 @@ const state = {
 };
 
 const savedTheme = localStorage.getItem("kana-theme");
-const modeButtons = document.querySelectorAll(".mode-button");
+const scriptButtons = document.querySelectorAll(".script-button");
+const trainingButtons = document.querySelectorAll(".training-button");
+const scopeButtons = document.querySelectorAll(".scope-button");
 const resetButtons = document.querySelectorAll(".reset-button");
 const themeSwitch = document.querySelector("#themeSwitch");
 const currentKana = document.querySelector("#currentKana");
@@ -121,6 +126,11 @@ const levelLabel = document.querySelector("#levelLabel");
 const streakLabel = document.querySelector("#streakLabel");
 const progressLabel = document.querySelector("#progressLabel");
 const lineLabel = document.querySelector("#lineLabel");
+const trainingModeLabel = document.querySelector("#trainingModeLabel");
+const levelScopeLabel = document.querySelector("#levelScopeLabel");
+const levelScopePanel = document.querySelector("#levelScopePanel");
+const groupPanel = document.querySelector("#groupPanel");
+const groupGrid = document.querySelector("#groupGrid");
 const resetModeLabel = document.querySelector("#resetModeLabel");
 const feedback = document.querySelector("#feedback");
 const mistakeList = document.querySelector("#mistakeList");
@@ -140,8 +150,42 @@ function shuffle(items) {
     .map(({ item }) => item);
 }
 
+function getScriptLabel(scriptMode = state.scriptMode) {
+  const labels = {
+    hiragana: "hiragana",
+    katakana: "katakana",
+    both: "hiragana + katakana",
+  };
+
+  return labels[scriptMode];
+}
+
+function expandEntries(entries) {
+  const scripts = state.scriptMode === "both" ? ["hiragana", "katakana"] : [state.scriptMode];
+
+  return entries.flatMap((entry) =>
+    scripts.map((script) => ({
+      ...entry,
+      script,
+      symbol: entry[script],
+    }))
+  );
+}
+
 function getLevelEntries() {
-  return kanaRows.slice(0, state.level + 1).flatMap((row) => row.entries);
+  if (state.trainingMode === "groups") {
+    const selectedEntries = kanaRows
+      .filter((row) => state.selectedRows.has(row.name))
+      .flatMap((row) => row.entries);
+
+    return expandEntries(selectedEntries);
+  }
+
+  const rows = state.levelScope === "current"
+    ? [kanaRows[state.level]]
+    : kanaRows.slice(0, state.level + 1);
+
+  return expandEntries(rows.flatMap((row) => row.entries));
 }
 
 function startLevel(message = "") {
@@ -164,14 +208,23 @@ function render() {
   const current = state.queue[state.currentIndex];
   const total = state.queue.length;
   const answered = state.currentIndex;
+  const selectedRowNames = kanaRows
+    .filter((row) => state.selectedRows.has(row.name))
+    .map((row) => row.name);
 
-  levelLabel.textContent = String(state.level + 1);
+  levelLabel.textContent = state.trainingMode === "groups" ? "-" : String(state.level + 1);
   streakLabel.textContent = String(state.streak);
   progressLabel.textContent = `${answered}/${total}`;
-  lineLabel.textContent = `Linhas: ${kanaRows.slice(0, state.level + 1).map((row) => row.name).join(", ")}`;
+  trainingModeLabel.textContent = state.trainingMode === "groups" ? "Grupos" : "Níveis";
+  levelScopeLabel.textContent = state.levelScope === "current" ? "Grupo atual" : "Acumulativo";
+  levelScopePanel.hidden = state.trainingMode === "groups";
+  groupPanel.hidden = state.trainingMode !== "groups";
+  lineLabel.textContent = state.trainingMode === "groups"
+    ? `Grupos: ${selectedRowNames.join(", ")} | Kana: ${getScriptLabel()}`
+    : `Linhas: ${getActiveLevelRows().map((row) => row.name).join(", ")} | Kana: ${getScriptLabel()}`;
   resetModeLabel.textContent = state.resetMode === "total" ? "Resetar tudo" : "Resetar nível";
-  currentKana.textContent = current[state.mode];
-  currentKana.setAttribute("aria-label", `Kana atual ${current[state.mode]}`);
+  currentKana.textContent = current.symbol;
+  currentKana.setAttribute("aria-label", `Kana atual ${current.symbol}`);
   currentKana.classList.toggle("error", state.isWaitingAfterError);
 
   kanaTrack.innerHTML = "";
@@ -179,8 +232,8 @@ function render() {
   state.queue.forEach((entry, index) => {
     const card = document.createElement("div");
     card.className = "kana-card";
-    card.textContent = entry[state.mode];
-    card.setAttribute("aria-label", index === state.currentIndex ? `Kana atual ${entry[state.mode]}` : entry[state.mode]);
+    card.textContent = entry.symbol;
+    card.setAttribute("aria-label", index === state.currentIndex ? `Kana atual ${entry.symbol}` : entry.symbol);
 
     if (index < state.currentIndex) {
       card.classList.add("done");
@@ -227,18 +280,40 @@ function renderMistakes() {
   });
 }
 
+function getActiveLevelRows() {
+  if (state.levelScope === "current") {
+    return [kanaRows[state.level]];
+  }
+
+  return kanaRows.slice(0, state.level + 1);
+}
+
+function renderGroupButtons() {
+  groupGrid.innerHTML = "";
+
+  kanaRows.forEach((row) => {
+    const button = document.createElement("button");
+    button.className = "group-button";
+    button.type = "button";
+    button.dataset.group = row.name;
+    button.textContent = row.name.toUpperCase();
+    button.classList.toggle("active", state.selectedRows.has(row.name));
+    groupGrid.append(button);
+  });
+}
+
 function normalizeAnswer(value) {
   return value.trim().toLowerCase();
 }
 
 function registerMistake(entry, typedAnswer) {
-  const key = `${state.mode}:${entry.romaji}`;
+  const key = `${entry.script}:${entry.romaji}`;
   const existing = state.mistakes.get(key);
 
   state.mistakes.set(key, {
-    symbol: entry[state.mode],
+    symbol: entry.symbol,
     romaji: entry.romaji,
-    mode: state.mode,
+    mode: entry.script,
     lastAnswer: typedAnswer,
     count: existing ? existing.count + 1 : 1,
   });
@@ -247,9 +322,14 @@ function registerMistake(entry, typedAnswer) {
 function resetAfterMistake(entry) {
   state.streak = 0;
 
-  if (state.resetMode === "total") {
+  if (state.resetMode === "total" && state.trainingMode === "levels") {
     state.level = 0;
     startLevel(`Errou. Era "${entry.romaji}". Voltando para o nível 1.`);
+    return;
+  }
+
+  if (state.trainingMode === "groups") {
+    startLevel(`Errou. Era "${entry.romaji}". Reiniciando os grupos escolhidos.`);
     return;
   }
 
@@ -282,13 +362,17 @@ function handleCorrectAnswer() {
 
   state.streak += 1;
 
+  if (state.trainingMode === "groups") {
+    startLevel("Grupo completo. Reembaralhando os kana escolhidos.");
+    return;
+  }
+
   if (state.level < kanaRows.length - 1) {
     state.level += 1;
     startLevel("Nível completo. Indo para o próximo.");
     return;
   }
 
-  setFeedback("Você completou todos os kana básicos. Streak aumentada e o treino recomeçou.", "success");
   state.level = 0;
   startLevel("Todos os níveis completos. Recomeçando do nível 1.");
 }
@@ -318,17 +402,75 @@ answerForm.addEventListener("submit", (event) => {
   showMistakeBeforeReset(current);
 });
 
-modeButtons.forEach((button) => {
+scriptButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    state.mode = button.dataset.mode;
+    state.scriptMode = button.dataset.scriptMode;
     state.level = 0;
     state.currentIndex = 0;
     state.streak = 0;
 
-    modeButtons.forEach((item) => item.classList.toggle("active", item === button));
-    startLevel(`Modo ${state.mode} selecionado. Começando pelo nível 1.`);
+    scriptButtons.forEach((item) => item.classList.toggle("active", item === button));
+    startLevel(`Modo ${getScriptLabel()} selecionado. Começando novamente.`);
     answerInput.focus();
   });
+});
+
+trainingButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.trainingMode = button.dataset.trainingMode;
+    state.level = 0;
+    state.currentIndex = 0;
+    state.streak = 0;
+
+    trainingButtons.forEach((item) => item.classList.toggle("active", item === button));
+    startLevel(state.trainingMode === "groups"
+      ? "Treino por grupos ativado."
+      : "Treino por níveis ativado.");
+    answerInput.focus();
+  });
+});
+
+scopeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.levelScope = button.dataset.levelScope;
+    state.level = 0;
+    state.currentIndex = 0;
+    state.streak = 0;
+
+    scopeButtons.forEach((item) => item.classList.toggle("active", item === button));
+    startLevel(state.levelScope === "current"
+      ? "Modo fácil ativado: só o grupo atual aparece."
+      : "Modo acumulativo ativado.");
+    answerInput.focus();
+  });
+});
+
+groupGrid.addEventListener("click", (event) => {
+  const button = event.target.closest(".group-button");
+
+  if (!button) {
+    return;
+  }
+
+  const group = button.dataset.group;
+
+  if (state.selectedRows.has(group) && state.selectedRows.size === 1) {
+    setFeedback("Escolha pelo menos um grupo para treinar.", "error");
+    answerInput.focus();
+    return;
+  }
+
+  if (state.selectedRows.has(group)) {
+    state.selectedRows.delete(group);
+  } else {
+    state.selectedRows.add(group);
+  }
+
+  renderGroupButtons();
+  state.trainingMode = "groups";
+  trainingButtons.forEach((item) => item.classList.toggle("active", item.dataset.trainingMode === "groups"));
+  startLevel("Grupos atualizados. Treino reembaralhado.");
+  answerInput.focus();
 });
 
 resetButtons.forEach((button) => {
@@ -359,4 +501,5 @@ clearHistory.addEventListener("click", () => {
 });
 
 applyTheme(savedTheme === "dark" ? "dark" : "light");
+renderGroupButtons();
 startLevel();

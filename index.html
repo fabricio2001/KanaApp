@@ -39,9 +39,10 @@
             </span>
           </button>
 
-          <div class="mode-switch" aria-label="Escolha o tipo de kana">
-            <button class="mode-button active" type="button" data-mode="hiragana">Hiragana</button>
-            <button class="mode-button" type="button" data-mode="katakana">Katakana</button>
+          <div class="script-switch" aria-label="Escolha o tipo de kana">
+            <button class="script-button active" type="button" data-script-mode="hiragana">Hiragana</button>
+            <button class="script-button" type="button" data-script-mode="katakana">Katakana</button>
+            <button class="script-button" type="button" data-script-mode="both">Ambos</button>
           </div>
         </div>
       </header>
@@ -58,6 +59,41 @@
         <div class="stat">
           <span>Progresso</span>
           <strong id="progressLabel">0/5</strong>
+        </div>
+      </section>
+
+      <section class="training-options" aria-label="Opções de treino">
+        <div class="option-row">
+          <div>
+            <span class="option-label">Treino</span>
+            <strong id="trainingModeLabel">Níveis</strong>
+          </div>
+
+          <div class="training-switch">
+            <button class="training-button active" type="button" data-training-mode="levels">Níveis</button>
+            <button class="training-button" type="button" data-training-mode="groups">Grupos</button>
+          </div>
+        </div>
+
+        <div class="option-row" id="levelScopePanel">
+          <div>
+            <span class="option-label">Modo de nível</span>
+            <strong id="levelScopeLabel">Acumulativo</strong>
+          </div>
+
+          <div class="scope-switch">
+            <button class="scope-button active" type="button" data-level-scope="cumulative">Acumulativo</button>
+            <button class="scope-button" type="button" data-level-scope="current">Grupo atual</button>
+          </div>
+        </div>
+
+        <div class="group-panel" id="groupPanel" hidden>
+          <div>
+            <span class="option-label">Grupos específicos</span>
+            <strong>Marque um ou mais</strong>
+          </div>
+
+          <div class="group-grid" id="groupGrid"></div>
         </div>
       </section>
 
